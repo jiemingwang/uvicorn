@@ -283,6 +283,30 @@ def print_version(ctx: click.Context, param: click.Parameter, value: bool) -> No
     default=None,
     help="Maximum number of seconds to wait for graceful shutdown.",
 )
+@click.option(
+    "--tcp-keepalive",
+    type=bool,
+    default=False,
+    help="Enable TCP keep-alive.",
+)
+@click.option(
+    "--tcp-keepidle",
+    type=int,
+    default=30,
+    help="The number of seconds a connection needs to be idle before TCP begins sending out keep-alive probes (supprted by most OS with few exceptions).",
+)
+@click.option(
+    "--tcp-keepintvl",
+    type=int,
+    default=60,
+    help="The number of seconds between TCP keep-alive probes (supprted by most OS with few exceptions).",
+)
+@click.option(
+    "--tcp-keepcnt",
+    type=int,
+    default=6,
+    help="The maximum number of TCP keep-alive probes to send before dropping the connection if no response is obtained from the other end (supprted by most OS with few exceptions).",
+)
 @click.option("--ssl-keyfile", type=str, default=None, help="SSL key file", show_default=True)
 @click.option(
     "--ssl-certfile",
@@ -397,6 +421,10 @@ def main(
     limit_max_requests: int,
     timeout_keep_alive: int,
     timeout_graceful_shutdown: int | None,
+    tcp_keepalive: bool,
+    tcp_keepidle: int,
+    tcp_keepintvl: int,
+    tcp_keepcnt: int,
     ssl_keyfile: str,
     ssl_certfile: str,
     ssl_keyfile_password: str,
@@ -446,6 +474,10 @@ def main(
         limit_max_requests=limit_max_requests,
         timeout_keep_alive=timeout_keep_alive,
         timeout_graceful_shutdown=timeout_graceful_shutdown,
+        tcp_keepalive=tcp_keepalive,
+        tcp_keepidle=tcp_keepidle,
+        tcp_keepintvl=tcp_keepintvl,
+        tcp_keepcnt=tcp_keepcnt,
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_keyfile_password=ssl_keyfile_password,
@@ -498,6 +530,10 @@ def run(
     limit_max_requests: int | None = None,
     timeout_keep_alive: int = 5,
     timeout_graceful_shutdown: int | None = None,
+    tcp_keepalive: bool = False,
+    tcp_keepidle: int = 30,
+    tcp_keepintvl: int = 60,
+    tcp_keepcnt: int = 6,
     ssl_keyfile: str | os.PathLike[str] | None = None,
     ssl_certfile: str | os.PathLike[str] | None = None,
     ssl_keyfile_password: str | None = None,
@@ -550,6 +586,10 @@ def run(
         limit_max_requests=limit_max_requests,
         timeout_keep_alive=timeout_keep_alive,
         timeout_graceful_shutdown=timeout_graceful_shutdown,
+        tcp_keepalive=tcp_keepalive,
+        tcp_keepidle=tcp_keepidle,
+        tcp_keepintvl=tcp_keepintvl,
+        tcp_keepcnt=tcp_keepcnt,
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_keyfile_password=ssl_keyfile_password,

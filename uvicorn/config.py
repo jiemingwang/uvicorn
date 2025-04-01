@@ -213,6 +213,10 @@ class Config:
         timeout_keep_alive: int = 5,
         timeout_notify: int = 30,
         timeout_graceful_shutdown: int | None = None,
+        tcp_keepalive: bool = False,
+        tcp_keepidle: int = 30,
+        tcp_keepintvl: int = 60,
+        tcp_keepcnt: int = 6,
         callback_notify: Callable[..., Awaitable[None]] | None = None,
         ssl_keyfile: str | os.PathLike[str] | None = None,
         ssl_certfile: str | os.PathLike[str] | None = None,
@@ -257,6 +261,10 @@ class Config:
         self.timeout_keep_alive = timeout_keep_alive
         self.timeout_notify = timeout_notify
         self.timeout_graceful_shutdown = timeout_graceful_shutdown
+        self.tcp_keepalive = tcp_keepalive
+        self.tcp_keepidle = tcp_keepidle
+        self.tcp_keepintvl = tcp_keepintvl
+        self.tcp_keepcnt = tcp_keepcnt
         self.callback_notify = callback_notify
         self.ssl_keyfile = ssl_keyfile
         self.ssl_certfile = ssl_certfile
@@ -511,6 +519,24 @@ class Config:
 
             sock = socket.socket(family=family)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if self.tcp_keepalive:
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                #Following 3 are supported by most OS, with few exceptions
+                try: # pragma py-linux
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, self.tcp_keepidle)
+                except AttributeError as exc:
+                    exc = f"TCP_KEEPIDLE is not supported on this platform and ignored."
+                    logger.warning(exc)
+                try: # pragma py-linux
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, self.tcp_keepintvl)
+                except AttributeError as exc:
+                    exc = f"TCP_KEEPINTVL is not supported on this platform and ignored."
+                    logger.warning(exc)
+                try: # pragma py-linux
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, self.tcp_keepcnt)
+                except AttributeError as exc:
+                    exc = f"TCP_KEEPCNT is not supported on this platform and ignored."
+                    logger.warning(exc)
             try:
                 sock.bind((self.host, self.port))
             except OSError as exc:  # pragma: full coverage

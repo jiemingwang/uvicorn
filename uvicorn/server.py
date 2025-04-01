@@ -177,6 +177,26 @@ class Server:
             self.servers = [server]
 
         if sockets is None:
+            # Setup TCP Keepalive
+            if config.tcp_keepalive:
+                sock = listeners[0]
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                #Following 3 are supported by most OS, with few exceptions
+                try: # pragma py-linux
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, config.tcp_keepidle)
+                except AttributeError as exc:
+                    exc = f"TCP_KEEPIDLE is not supported on this platform and ignored."
+                    logger.warning(exc)
+                try: # pragma py-linux
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, config.tcp_keepintvl)
+                except AttributeError as exc:
+                    exc = f"TCP_KEEPINTVL is not supported on this platform and ignored."
+                    logger.warning(exc)
+                try: # pragma py-linux
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, config.tcp_keepcnt)
+                except AttributeError as exc:
+                    exc = f"TCP_KEEPCNT is not supported on this platform and ignored"
+                    logger.warning(exc)
             self._log_started_message(listeners)
         else:
             # We're most likely running multiple workers, so a message has already been
